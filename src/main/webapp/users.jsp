@@ -6,7 +6,18 @@
 </head>
 <body>
 
-<form name="converter" action="UserAndRole.java" method="post">
+<form name="users" action="UserAndRole.java" method="post">
+    <div class = "mainblok">
+    <div class = "users">
+        <p>Пользователи</p>
+
+    </div>
+        <div>
+            <p>Выберите действие</p>
+
+        </div>
+    </div>
+
 </form>
 </body>
 </html>
