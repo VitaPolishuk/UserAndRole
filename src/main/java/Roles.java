@@ -9,38 +9,43 @@ import javax.swing.plaf.nimbus.State;
 import java.io.IOException;
 import java.sql.*;
 
-@WebServlet("/")
-public class UserAndRole extends HttpServlet {
+@WebServlet("/roles")
+public class Roles extends HttpServlet {
     private static final String  username = "root";
     private static final String  password = "root";
     private static final String  URL = "jdbc:mysql://localhost:3306/mysql";
     public void init() throws ServletException  {
-
-
-         try {
-             DBConnection db = new DBConnection();
+        try {
+            DBConnection db = new DBConnection();
             Connection conn = db.getConnection(URL,username,password);
-            String query = "select * from usersandroles.users";
-            Statement statement = conn.createStatement();
-            ResultSet resSet = statement.executeQuery(query);
-            while(resSet.next()){
-                int id = resSet.getInt("id_user");
-                String name = resSet.getString("name_user");
-                String email = resSet.getString("email");
-                int idrole = resSet.getInt("id_roles");
-                System.out.println("id_user = "+id+", name = "+name+", email = "+ email+", id_role = "+idrole);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
-             e.printStackTrace();
-         }
-
+            e.printStackTrace();
+        }
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
-        request.getRequestDispatcher("users.jsp").forward(request,response);
+        try {
+            DBConnection db = new DBConnection();
+            Connection conn = db.getConnection(URL,username,password);
+            String query = "select id_roles from usersandroles.roles";
+            Statement statement = conn.createStatement();
+            ResultSet resSet = statement.executeQuery(query);
+            String name = "";
+            while(resSet.next()){
+                if(name.equals("")){name = resSet.getString("id_roles"); }
+                else{name = name +"," +resSet.getString("id_roles");}
+            }
+            request.setAttribute("listRoles", name);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        request.getRequestDispatcher("roles.jsp").forward(request,response);
 
 
     }
@@ -52,6 +57,8 @@ public class UserAndRole extends HttpServlet {
     }
     public void doPostGet(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
+        String str = request.getParameter("nevidimka").toString();
+
 
         doGet(request,response);
     }

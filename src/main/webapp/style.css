@@ -1,0 +1,15 @@
+
+.Actions{
+    display: inline-block;
+    padding: 20px 20px 20px 20px;
+    float :left;
+}
+.Users{
+    display: inline-block;
+    padding: 20px 20px 20px 20px;
+    float :left;
+}
+p{
+
+    color: red;
+}
