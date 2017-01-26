@@ -4,7 +4,7 @@
 <head>
     <title>Роли</title>
 </head>
-<body onload = "loadList()">
+<body onload = "loadList()" bgcolor="#DEB887">
 <form name="roles" action="Roles.java" method="post">
 <select name = "Roles">
     <option   value="roles" selected>Выберите роль</option>

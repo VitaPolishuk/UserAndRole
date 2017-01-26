@@ -13,11 +13,10 @@ import java.sql.*;
 public class Roles extends HttpServlet {
     private static final String  username = "root";
     private static final String  password = "root";
-    private static final String  URL = "jdbc:mysql://localhost:3306/mysql";
+    Connection conn;
     public void init() throws ServletException  {
         try {
-            DBConnection db = new DBConnection();
-            Connection conn = db.getConnection(URL,username,password);
+             this.conn = new DBConnection().getConnection(username,password);
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -28,8 +27,6 @@ public class Roles extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
         try {
-            DBConnection db = new DBConnection();
-            Connection conn = db.getConnection(URL,username,password);
             String query = "select id_roles from usersandroles.roles";
             Statement statement = conn.createStatement();
             ResultSet resSet = statement.executeQuery(query);
@@ -40,8 +37,6 @@ public class Roles extends HttpServlet {
             }
             request.setAttribute("listRoles", name);
         } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
