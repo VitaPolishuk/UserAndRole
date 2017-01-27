@@ -53,10 +53,11 @@ public class ServletDB extends HttpServlet {
 
 
         String str = request.getParameter("type");
-        String selectUs = request.getParameter("name");
-        System.out.println(str+ "   "+selectUs);
+
+       // System.out.println(str+ "   "+selectUs);
         switch(str){
             case "selectUser": {
+                String selectUs = request.getParameter("name");
                 response.setContentType("application/json");
                 response.setCharacterEncoding("utf-8");
                 //String selectUser = request.getParameter("Users");
@@ -68,49 +69,189 @@ public class ServletDB extends HttpServlet {
                 resSet.next();
                 String email = resSet.getString("email");
                 int id_roles = resSet.getInt("id_roles");
-                System.out.println(selectUs+"   "+email+"   "+id_roles);
+
+                PreparedStatement statement1 = conn.prepareStatement("select name_roles from usersandroles.roles where id_roles = "+id_roles);
+
+                ResultSet resSet1 = statement1.executeQuery();
+                resSet1.next();
+                String name_rol = resSet1.getString("name_roles");
+                System.out.println(selectUs+"   "+email+"   "+name_rol);
                 try (PrintWriter out = response.getWriter()) {
                     JSONObject jsonEnt = new JSONObject();
 
                     jsonEnt.put("selectUs", selectUs );
                     jsonEnt.put("email", email);
-                    jsonEnt.put("id_roles",""+id_roles);
+                    jsonEnt.put("name_roles",""+name_rol);
+
 
                     out.print(jsonEnt.toString());
 
                 break;
             }}
-            case "Add":{
+            case "selectRole": {
+                String selectRole = request.getParameter("name");
+
+                try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+
+                    jsonEnt.put("name_roles", selectRole );
+
+                    out.print(jsonEnt.toString());
+
+                    break;
+                }}
+            case "AddUser":{
 
                 String nameUser = request.getParameter("nameUser");
                 System.out.println(nameUser + " name user");
                 String email = request.getParameter("email");
                 System.out.println(email + " email");
-                int id_roles = Integer.parseInt(request.getParameter("id_roles"));
-                System.out.println(id_roles + "   id roles");
+                String name_roles = request.getParameter("name_roles");
+                System.out.println(name_roles + "   name roles");
+                PreparedStatement statement = conn.prepareStatement("select id_roles from usersandroles.roles where name_roles = "+"\""+name_roles+"\"");
 
-                PreparedStatement statement = conn.prepareStatement("insert into usersandroles.users (name_user,email,id_roles) values(?,?,?)");
+                ResultSet resSet = statement.executeQuery();
+                resSet.next();
+                int id_rol = resSet.getInt("id_roles");
+                PreparedStatement statement1 = conn.prepareStatement("insert into usersandroles.users (name_user,email,id_roles) values(?,?,?)");
 
-                statement.setString(1,nameUser);
-                statement.setString(2,email);
-                statement.setInt(3,id_roles);
+                statement1.setString(1,nameUser);
+                statement1.setString(2,email);
+                statement1.setInt(3,id_rol);
+
+                statement1.executeUpdate();
+                String name =  returnAllUsers();
+
+            try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+
+                    jsonEnt.put("listUserUpdate", name );
+
+
+                    out.print(jsonEnt.toString());
+               // doGet(request,response);
+                break;
+            }}
+            case "AddRole":{
+
+                String nameRole = request.getParameter("nameRole");
+
+                PreparedStatement statement = conn.prepareStatement("insert into usersandroles.roles (name_roles) values(?)");
+
+                statement.setString(1,nameRole);
 
                 statement.executeUpdate();
-                doGet(request,response);
-                break;
+                String name =  returnAllRoles();
+
+                try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+
+                    jsonEnt.put("listRoleUpdate", name );
+
+
+                    out.print(jsonEnt.toString());
+                    // doGet(request,response);
+                    break;
+                }}
+            case "ChangeUser":{
+
+                String selectUserChange = request.getParameter("selectUserChange");
+                String name = request.getParameter("name");
+                String email = request.getParameter("email");
+                String name_roles = request.getParameter("name_roles");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("utf-8");
+                PreparedStatement statement = conn.prepareStatement("select id_roles from usersandroles.roles where name_roles = "+"\""+name_roles+"\"");
+                ResultSet resSet = statement.executeQuery();
+                resSet.next();
+                int id_rol = resSet.getInt("id_roles");
+                PreparedStatement preparedStatement = conn.prepareStatement("UPDATE  usersandroles.users  set name_user = ?, email = ?, id_roles = ? where name_user =?");
+                preparedStatement.setString(1,name);
+                preparedStatement.setString(2,email);
+                preparedStatement.setInt(3,id_rol);
+                preparedStatement.setString(4,selectUserChange);
+                preparedStatement.executeUpdate();
+                try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+                    String nam =  returnAllUsers();
+                    jsonEnt.put("listUserChange", nam );
+                    out.print(jsonEnt.toString());
+                   // doGet(request,response);
+                    break;
+                }}
+            case "ChangeRole":{
+
+                String selectRoleChange = request.getParameter("selectRoleChange");
+                String name = request.getParameter("name");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("utf-8");
+                PreparedStatement preparedStatement = conn.prepareStatement("UPDATE  usersandroles.roles  set name_roles = ? where name_roles =?");
+                preparedStatement.setString(1,name);
+                preparedStatement.setString(2,selectRoleChange);
+                preparedStatement.executeUpdate();
+                try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+                    String nam =  returnAllRoles();
+                    jsonEnt.put("listRoleChange", nam );
+                    out.print(jsonEnt.toString());
+                    // doGet(request,response);
+                    break;
+                }}
+            case "DelUser":{
+                String selectUserDel = request.getParameter("selectUserDel");
+                PreparedStatement preparedStatement = conn.prepareStatement("Delete from usersandroles.users where name_user = ?");
+                preparedStatement.setString(1,selectUserDel);
+                preparedStatement.executeUpdate();
+                try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+                    String nam =  returnAllUsers();
+                    jsonEnt.put("listUserDel", nam );
+                    out.print(jsonEnt.toString());
+                    //doGet(request,response);
+                    break;
+                }
             }
-            case "Delete": {
-
-                break;
+            case "DelRole":{
+                String selectUserDel = request.getParameter("selectRoleDel");
+                PreparedStatement preparedStatement = conn.prepareStatement("Delete from usersandroles.roles where name_roles = ?");
+                preparedStatement.setString(1,selectUserDel);
+                preparedStatement.executeUpdate();
+                try (PrintWriter out = response.getWriter()) {
+                    JSONObject jsonEnt = new JSONObject();
+                    String nam =  returnAllRoles();
+                    jsonEnt.put("listRoleDel", nam );
+                    out.print(jsonEnt.toString());
+                    //doGet(request,response);
+                    break;
+                }
             }
-            case "Change":{
+        }
+    }
+    public String returnAllUsers() throws SQLException {
 
-
-                break;
-            }
-
+        Statement statement = conn.createStatement();
+        String query = "select name_user from usersandroles.users";
+        ResultSet resSet = statement.executeQuery(query);
+        String nam = "";
+        while(resSet.next()){
+            if(nam.equals("")){nam = resSet.getString("name_user"); }
+            else{nam = nam +"," +resSet.getString("name_user");}
         }
 
+       return nam;
+    }
+    public String returnAllRoles() throws SQLException {
+
+        Statement statement = conn.createStatement();
+        String query = "select name_roles from usersandroles.roles";
+        ResultSet resSet = statement.executeQuery(query);
+        String nam = "";
+        while(resSet.next()){
+            if(nam.equals("")){nam = resSet.getString("name_roles"); }
+            else{nam = nam +"," +resSet.getString("name_roles");}
+        }
+
+        return nam;
     }
 
 }

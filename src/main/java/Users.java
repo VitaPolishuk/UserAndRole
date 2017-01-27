@@ -45,6 +45,21 @@ public class Users extends HttpServlet  {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        try {
+
+            String query = "select name_roles from usersandroles.roles";
+            Statement statement = conn.createStatement();
+            //загрузка списка пользователей
+            ResultSet resSet = statement.executeQuery(query);
+            String name = "";
+            while(resSet.next()){
+                if(name.equals("")){name = resSet.getString("name_roles"); }
+                else{name = name +"," +resSet.getString("name_roles");}
+            }
+            request.setAttribute("listRole", name);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         request.getRequestDispatcher("users.jsp").forward(request,response);
     }
 

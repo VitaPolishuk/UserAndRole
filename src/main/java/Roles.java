@@ -27,13 +27,13 @@ public class Roles extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
         try {
-            String query = "select id_roles from usersandroles.roles";
+            String query = "select name_roles from usersandroles.roles";
             Statement statement = conn.createStatement();
             ResultSet resSet = statement.executeQuery(query);
             String name = "";
             while(resSet.next()){
-                if(name.equals("")){name = resSet.getString("id_roles"); }
-                else{name = name +"," +resSet.getString("id_roles");}
+                if(name.equals("")){name = resSet.getString("name_roles"); }
+                else{name = name +"," +resSet.getString("name_roles");}
             }
             request.setAttribute("listRoles", name);
         } catch (SQLException e) {

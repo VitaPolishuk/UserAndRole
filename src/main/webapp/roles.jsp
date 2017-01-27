@@ -3,18 +3,22 @@
 <html>
 <head>
     <title>Роли</title>
+    <script type = "text/javascript" src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
 </head>
-<body onload = "loadList()" bgcolor="#DEB887">
+<body onload = "loadList('<%=request.getAttribute("listRoles")%>')" bgcolor="#DEB887">
 <form name="roles" action="Roles.java" method="post">
-<select name = "Roles">
+    <div class="linkRoles"><h3><a href="http://localhost:8001/">Пользователи</a></h3></div>
+    <p>Выберите роль</p>
+<select name = "Roles" id = "Roles" onchange="selectRole()">
     <option   value="roles" selected>Выберите роль</option>
-
 </select>
+    <p>
+    <div> <input name="name_roles" type="text" id = "name_roles"></div>
 <div class = "actions">
     <p>Выберите действие</p>
-    <p> <input  type="submit" name = "Add" value="Добавить" onclick="">
-    <p> <input  type="submit" name = "Delete" value="Удалить" onclick="">
-    <p> <input  type="submit" name = "Change" value="Изменить" onclick="">
+    <p> <input  type="button" name = "Add" value = "Добавить" onclick="addRole()">
+    <p> <input  type="button" name = "Delete" value = "Удалить" onclick="deleteRole()">
+    <p> <input  type="button" name = "Change" value = "Изменить" onclick="changeRole()">
 </div>
 </form>
 
@@ -23,9 +27,9 @@
 
         return index.split(","); // преобразуем строку в массив значений
     }
-    function loadList() {
+    function loadList(str) {
 
-        aCurrValues =   getValuesByValue("<%=request.getAttribute("listRoles")%>");
+        aCurrValues =   getValuesByValue(str);
         var nCurrValuesCnt = aCurrValues.length;
         var oListL = document.forms["roles"].elements["Roles"];
 
@@ -44,6 +48,66 @@
                 oListL.options[i] = new Option(aCurrValues[i], aCurrValues[i], false, false);
             }
         }}
+    function selectRole() {
+        ///document.getElementById("name_roles").value = document.getElementById("Roles").value
+        $.ajax({
+            type: "POST",
+            url: "servletDB",
+            data: {type: "selectRole", name : document.getElementById("Roles").value },
+            dataType: "json",
+
+            success: function( data, textStatus, jqXHR) {
+
+                $('#name_roles').val(data.name_roles);
+
+            }
+        })
+    }
+    function changeRole(){
+        $.ajax({
+            type: "POST",
+            url: "servletDB",
+            data: {type: "ChangeRole", selectRoleChange: document.getElementById("Roles").value,
+                name: document.getElementById("name_roles").value,},
+
+            dataType: "json",
+            success: function( data, textStatus, jqXHR) {
+                $('#name_roles').val("");
+                loadList(data.listRoleChange);
+
+            }
+        })
+
+    }
+    function addRole(){
+        $.ajax({
+            type: "POST",
+            url: "servletDB",
+            data: {type: "AddRole", nameRole: document.getElementById("name_roles").value},
+            dataType: "json",
+            success: function( data, textStatus, jqXHR) {
+
+                $('#name_roles').val("");
+                loadList(data.listRoleUpdate);
+            }
+        })
+
+    }
+    function  deleteRole(){
+        $.ajax({
+            type: "POST",
+            url: "servletDB",
+            data: {type: "DelRole", selectRoleDel: document.getElementById("Roles").value},
+
+            dataType: "json",
+            success: function( data, textStatus, jqXHR) {
+                $('#name_roles').val("");
+                loadList(data.listRoleDel);
+
+            }
+        })
+
+    }
 </script>
 </body>
 </html>

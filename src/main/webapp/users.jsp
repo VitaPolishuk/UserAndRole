@@ -21,9 +21,9 @@
         }
     </style>
 </head>
-<body onload="loadList()" bgcolor="#FFDEAD">
+<body onload="loadList('<%=request.getAttribute("listUser")%>') ; loadListRoles('<%=request.getAttribute("listRole")%>')" bgcolor="#FFDEAD">
  <form name="users" action="Users.java" method="post" id = "formx">
-     <!--<input type="hidden" name="nevidimka" id="nevidimka" value="">-->
+
      <div class="mainblok">
         <h1>Пользователи</h1>
         <div class="Users">
@@ -36,10 +36,8 @@
         <div class="Actions"></div>
 
         <div class="Add"><input type="button" name="Add" value="Добавить нового пользователя" onclick="check(this.form)"></div>
-        <div class="Delete"><input type="button" name="Delete" value="Удалить пользователя" onclick="document.getElementById('nevidimka').value = 'Delete'
-    document.forms['users'].submit() "></div>
-        <div class="Change"><input type="button" name="Change" value="Изменить данные пользователя" onclick="document.getElementById('nevidimka').value = 'Change'
-    document.forms['users'].submit() "></div>
+        <div class="Delete"><input type="button" name="Delete" value="Удалить пользователя" onclick="deleteUser() "></div>
+        <div class="Change"><input type="button" name="Change" value="Изменить данные пользователя" onclick="changeUser() "></div>
     </div>
     <div class="inputData">
         <table id = "table">
@@ -57,9 +55,12 @@
                 </td>
             </tr>
             <tr>
-                <td>ИД роли</td>
+                <td>Имя роли</td>
                 <td>
-                    <input name="id_roles" type="text" id = "id_roles">
+
+                    <select name = "name_roles" id = "name_roles" >
+                        <option   value="roles" selected>Выберите роль</option>
+                    </select>
                 </td>
             </tr>
         </table>
@@ -72,9 +73,9 @@
     function getValuesByValue(index) {
         return index.split(","); // преобразуем строку в массив значений
     }
-    function loadList() {
+    function loadList(str) {
 
-        aCurrValues = getValuesByValue("<%=request.getAttribute("listUser")%>");
+        aCurrValues = getValuesByValue(str);
         var nCurrValuesCnt = aCurrValues.length;
         var oListL = document.forms["users"].elements["Users"];
         var oListOptionsCnt = oListL.options.length;
@@ -91,11 +92,28 @@
                 // для NN3.x-4.x
                 oListL.options[i] = new Option(aCurrValues[i], aCurrValues[i], false, false);
             }
-        }
+        }}
+        function loadListRoles(str) {
 
-        document.getElementById("nameU").value = <%=request.getAttribute("nameU")%>
-            document.getElementById("email").value = <%=request.getAttribute("email")%>
-                document.getElementById("id_roles").value = <%=request.getAttribute("id_roles")%>
+            aCurrValues = getValuesByValue(str);
+            var nCurrValuesCnt = aCurrValues.length;
+            var oListL = document.forms["users"].elements["name_roles"];
+            var oListOptionsCnt = oListL.options.length;
+            oListL.length = 0; // удаляем все элементы из списка значений
+            for (i = 0; i < nCurrValuesCnt; i++) {
+                // далее мы добавляем необходимые значения в список
+                if (document.createElement) {
+                    var newListOption = document.createElement("OPTION");
+                    newListOption.text = aCurrValues[i];
+                    newListOption.value = aCurrValues[i];
+                    // тут мы используем для добавления элемента либо метод IE, либо DOM
+                    (oListL.options.add) ? oListL.options.add(newListOption) : oListL.add(newListOption, null);
+                } else {
+                    // для NN3.x-4.x
+                    oListL.options[i] = new Option(aCurrValues[i], aCurrValues[i], false, false);
+                }
+            }
+
     }
 
     function showError(container, errorMessage) {
@@ -123,38 +141,76 @@
             if (!elems.email.value) {
 
                 showError(elems.email.parentNode, ' Укажите email пользователя.');
-
-                resetError(elems.id_roles.parentNode);
-                if (!elems.id_roles.value) {
-
-                    showError(elems.id_roles.parentNode, ' Укажите ИД роли.');
-                }
             }
         }
         else {
-            document.getElementById('nevidimka').value = 'Add'
-            document.forms['users'].submit();
+          addUser();
         }
     }
+    function addUser(){
+       $.ajax({
+           type: "POST",
+           url: "servletDB",
+           data: {type: "AddUser", nameUser: document.getElementById("nameU").value, email: document.getElementById("email").value, name_roles:document.getElementById("name_roles").value},
+           dataType: "json",
+           success: function( data, textStatus, jqXHR) {
 
+               $('#nameU').val("");
+               $('#email').val("");
+              // $('#name_roles').val("");
+               loadList(data.listUserUpdate);
+           }
+       })
+
+   }
+    function changeUser(){
+        $.ajax({
+            type: "POST",
+            url: "servletDB",
+            data: {type: "ChangeUser", selectUserChange: document.getElementById("Users").value,
+                name: document.getElementById("nameU").value,
+                email: document.getElementById("email").value,
+                name_roles:document.getElementById("name_roles").value},
+            dataType: "json",
+            success: function( data, textStatus, jqXHR) {
+                $('#nameU').val("");
+                $('#email').val("");
+                loadList(data.listUserChange);
+
+            }
+        })
+
+    }
     function selectUser() {
-
         $.ajax({
             type: "POST",
             url: "servletDB",
             data: {type: "selectUser", name: document.getElementById("Users").value},
             dataType: "json",
 
-            //if received a response from the server
             success: function( data, textStatus, jqXHR) {
-
-
+          ;
                 $('#nameU').val(data.selectUs);
                 $('#email').val(data.email);
-                $('#id_roles').val(data.id_roles);
+                $('#name_roles').val(data.name_roles);
+            }
+        })
+    }
+    function  deleteUser(){
+        $.ajax({
+            type: "POST",
+            url: "servletDB",
+            data: {type: "DelUser", selectUserDel: document.getElementById("Users").value},
+
+            dataType: "json",
+            success: function( data, textStatus, jqXHR) {
+                $('#nameU').val("");
+                $('#email').val("");
+                loadList(data.listUserDel);
 
             }
         })
+
     }
 </script>
 </body>
