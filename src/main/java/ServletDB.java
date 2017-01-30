@@ -120,12 +120,19 @@ public class ServletDB extends HttpServlet {
                 statement1.setInt(3,id_rol);
 
                 statement1.executeUpdate();
-                String name =  returnAllUsers();
+
+                PreparedStatement statement2 = conn.prepareStatement("select id_user from usersandroles.users where name_user = "+"\""+nameUser+"\" AND  email = "+"\""+email+"\" ");
+
+                ResultSet resSet2 = statement2.executeQuery();
+                resSet2.next();
+                int id_user = resSet2.getInt("id_user");
+               String name = id_user+","+ nameUser+","+email+","+name_roles;
 
             try (PrintWriter out = response.getWriter()) {
                     JSONObject jsonEnt = new JSONObject();
 
-                    jsonEnt.put("listUserUpdate", name );
+                    jsonEnt.put("addTableUser", name );
+
 
 
                     out.print(jsonEnt.toString());
@@ -165,7 +172,7 @@ public class ServletDB extends HttpServlet {
                 ResultSet resSet = statement.executeQuery();
                 resSet.next();
                 int id_rol = resSet.getInt("id_roles");
-                PreparedStatement preparedStatement = conn.prepareStatement("UPDATE  usersandroles.users  set name_user = ?, email = ?, id_roles = ? where name_user =?");
+                PreparedStatement preparedStatement = conn.prepareStatement("UPDATE  usersandroles.users  set name_user = ?, email = ?, id_roles = ? where id_user =?");
                 preparedStatement.setString(1,name);
                 preparedStatement.setString(2,email);
                 preparedStatement.setInt(3,id_rol);
@@ -173,8 +180,10 @@ public class ServletDB extends HttpServlet {
                 preparedStatement.executeUpdate();
                 try (PrintWriter out = response.getWriter()) {
                     JSONObject jsonEnt = new JSONObject();
-                    String nam =  returnAllUsers();
-                    jsonEnt.put("listUserChange", nam );
+                    jsonEnt.put("id_user", selectUserChange );
+                    jsonEnt.put("name", name );
+                    jsonEnt.put("email", email );
+                    jsonEnt.put("name_roles", name_roles );
                     out.print(jsonEnt.toString());
                    // doGet(request,response);
                     break;
@@ -199,17 +208,10 @@ public class ServletDB extends HttpServlet {
                 }}
             case "DelUser":{
                 String selectUserDel = request.getParameter("selectUserDel");
-                PreparedStatement preparedStatement = conn.prepareStatement("Delete from usersandroles.users where name_user = ?");
+                PreparedStatement preparedStatement = conn.prepareStatement("Delete from usersandroles.users where id_user = ?");
                 preparedStatement.setString(1,selectUserDel);
                 preparedStatement.executeUpdate();
-                try (PrintWriter out = response.getWriter()) {
-                    JSONObject jsonEnt = new JSONObject();
-                    String nam =  returnAllUsers();
-                    jsonEnt.put("listUserDel", nam );
-                    out.print(jsonEnt.toString());
-                    //doGet(request,response);
-                    break;
-                }
+
             }
             case "DelRole":{
                 String selectUserDel = request.getParameter("selectRoleDel");

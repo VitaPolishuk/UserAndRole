@@ -9,7 +9,7 @@ import javax.swing.plaf.nimbus.State;
 import java.io.IOException;
 import java.sql.*;
 
-@WebServlet("/")
+@WebServlet("/s")
 public class Users extends HttpServlet  {
     private static final String  username = "root";
     private static final String  password = "root";
@@ -57,6 +57,34 @@ public class Users extends HttpServlet  {
                 else{name = name +"," +resSet.getString("name_roles");}
             }
             request.setAttribute("listRole", name);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+
+            String query = "select * from usersandroles.users";
+            Statement statement = conn.createStatement();
+            //загрузка списка пользователей
+            ResultSet resSet = statement.executeQuery(query);
+            String str = "";
+
+            int id_roles = 0;
+            ResultSet resSet1;
+            PreparedStatement preparedStatement;
+            while(resSet.next()){
+                id_roles = resSet.getInt("id_roles");
+                preparedStatement = conn.prepareStatement("select name_roles from usersandroles.roles where id_roles = "+id_roles);
+                resSet1 = preparedStatement.executeQuery();
+                resSet1.next();
+                if(str.equals("")){ str = resSet.getString("id_user")+","+ resSet.getString("name_user")+","+
+                                     resSet.getString("email")+","+
+                                        resSet1.getString("name_roles");
+                }
+                else{str = str + ","+resSet.getString("id_user")+","+resSet.getString("name_user")+","+
+                        resSet.getString("email")+","+
+                        resSet1.getString("name_roles");}
+            }
+            request.setAttribute("listUserAll", str);
         } catch (SQLException e) {
             e.printStackTrace();
         }
